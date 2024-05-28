@@ -1,30 +1,30 @@
-# exptools2
-The `exptools` Python package provides a way to easily and quickly create (psychophysics) experiments with accurate ("non-slip") timing. It is basically a wrapper around [Psychopy](https://www.psychopy.org/) which automates the boring but important parts of building experiments (such as stimulus timing and logging), while maintaining the flexibility of Psychopy in terms of how you want to present your stimuli and run your experiment. 
+# psypy
+The `psypy` Python package provides a way to easily and quickly create (psychophysics) experiments with accurate ("non-slip") timing. It is basically a wrapper around [Psychopy](https://www.psychopy.org/) which automates the boring but important parts of building experiments (such as stimulus timing and logging), while maintaining the flexibility of Psychopy in terms of how you want to present your stimuli and run your experiment. 
 
 
 # Installation instructions
 ## Installation using conda
-Import the conda environment from environment.yml file. Clone the repository (https://github.com/mxschlz/exptools2.git)  - preferably to the site-packages within the environment folder - and cd to it. Do "pip install -e ." and you are done! 😸 
+Import the conda environment from environment.yml file. Clone the repository (https://github.com/mxschlz/psypy.git)  - preferably to the site-packages within the environment folder - and cd to it. Do "pip install -e ." and you are done! 😸 
 
 For using the eyetracker, you also need to install `pylink`.
 
 ## Manual installation
 If you have the `EyeLink`-folder from `SRResearch`, you can install `pylink` for various python versions. You can find the wheels in `/usr/share/EyeLink/SampleExperiments/Python/wheels`, which are directly pip-installable for your given python version. 
 
-To install the repository, clone the repository (https://github.com/mxschlz/exptools2.git), cd to the cloned repository and install the package ("pip install -e .")
+To install the repository, clone the repository (https://github.com/mxschlz/psypy.git), cd to the cloned repository and install the package ("pip install -e .")
 
 If you want to use the eytracker functionality with Eyelink eyetrackers, you also need the `pylink` package (for Python3!) from SR Research. This is not yet publicly available; if you need it, send Lukas an email.
 
 ## Troubleshooting the installation
-*You're getting a `pyglet` error when `exptools2` tries to initialize a Window.*
+*You're getting a `pyglet` error when `psypy` tries to initialize a Window.*
 This is a weird bug caused when installing a `pyglet` version > 1.3.2. Uninstall `pyglet` and install version 1.3.2. specifically (`pip install pyglet==1.3.2`).
 
-*You're getting a `pylink` error when `exptools2` tries to initialize the Eyelink eyetracker.*
+*You're getting a `pylink` error when `psypy` tries to initialize the Eyelink eyetracker.*
 Did you install the `pylink` library (for Python 3.6)? Note that this is not yet publicly available, but Lukas has beta builds (for Windows/Mac/Linux) available, so send him an email if you need this. Another issue could be that you're using Python 3.7, which is not compatible with the `pylink` package (yet).
 
 # Usage
 ## How does it work?
-The package assumes that your experiment (or *session*) consists of a predetermined number of *trials*, which may in turn consist of a number of *phases*. For example, in a Stroop-experiment, a session may consist of 100 trials, which consist of two phases: a phase in which the stimulus (usually the word for a color, like "red", in a particular color) is shown, and another phase (the "interstimulus interval", ISI) in which a fixation dot is shown. Usually, you want your trials, and their phases, to have a predetermined onset and duration. This is especially relevant in studies in which concurrent fMRI, EEG/MEG, or eye gaze/pupil size is recorded. In `exptools2`, dedicated classes for functionality related to your session (the `Session` class) and your trials (the `Trial` class) are provided. Below, we explain these two classes in more detail.
+The package assumes that your experiment (or *session*) consists of a predetermined number of *trials*, which may in turn consist of a number of *phases*. For example, in a Stroop-experiment, a session may consist of 100 trials, which consist of two phases: a phase in which the stimulus (usually the word for a color, like "red", in a particular color) is shown, and another phase (the "interstimulus interval", ISI) in which a fixation dot is shown. Usually, you want your trials, and their phases, to have a predetermined onset and duration. This is especially relevant in studies in which concurrent fMRI, EEG/MEG, or eye gaze/pupil size is recorded. In `psypy`, dedicated classes for functionality related to your session (the `Session` class) and your trials (the `Trial` class) are provided. Below, we explain these two classes in more detail.
 
 ### The `Session` class
 In the `core` module of `exptools`, the `Session` class is defined. This class represents a "template" for experimental sessions, which contains functionality/boilerplate code for creating a (Psychopy) window, stimulus/response logging, among other things.
@@ -33,7 +33,7 @@ In the `core` module of `exptools`, the `Session` class is defined. This class r
 The base `Session` class is not meant to be used *directly*; instead, if you want to use its functionality in your own experiment, you should create your own class that inherits from the base `Session` class. For example, suppose that we want to implement a Stroop-experiment (we'll use this example throughout the docs). We can create a custom subclass based on `Session` as follows:
 
 ```python
-from exptools2.core import Session
+from psypy.core import Session
 
 class StroopSession(Session):
     pass
@@ -68,7 +68,7 @@ Note that we're still calling the parent's `__init__` method (the `super().__ini
 Now, before we explain the other important aspects of (custom) `Session` objects, we need to digress slightly and talk about the settings-file.
 
 #### The settings-file
-An important part of `exptools2` is the settings-file, which is needed by the `Session` class (and thus every custom session class which inherits from `Session`). The package contains a default settings-file (in `data/default_settings.yml`), which is used when you do not provide a custom settings-file to the session object during initialization. This is fine for testing your experiment, but for your "real" experiment, you should provide your own (custom) settings-file that is specific to your experiment. Your custom settings-file does not have to contain *all* possible settings; those settings that are not listed in your custom settings-file will be "inherited" from the default-settings file (which contain sensible defaults). 
+An important part of `psypy` is the settings-file, which is needed by the `Session` class (and thus every custom session class which inherits from `Session`). The package contains a default settings-file (in `data/default_settings.yml`), which is used when you do not provide a custom settings-file to the session object during initialization. This is fine for testing your experiment, but for your "real" experiment, you should provide your own (custom) settings-file that is specific to your experiment. Your custom settings-file does not have to contain *all* possible settings; those settings that are not listed in your custom settings-file will be "inherited" from the default-settings file (which contain sensible defaults). 
 
 Your custom settings-file should be a [YAML](https://en.wikipedia.org/wiki/YAML) file, i.e., it should use the YAML-specific syntax. Any settings-file may contain the following top-level items: `preferences`, `window`, `monitor`, `mouse`, `eyetracker`, and `mri`. Each top-level item may contain one or more "key: value" pairs, in which the "key" represents the name of the particular parameter and the "value" represents the actual value of the parameter. For example, the `monitor` top-level item contains (amongst others) the parameters `name`, `width`, `distance`, and `gamma`. To specify your experiment-specific parameters for these settings, include the following in your settings-file:
 
@@ -115,7 +115,7 @@ eyetracker:
 ```
 
 ### Preparing, running, and closing your session
-As outlined before, any session should contain a (predefined) number of trials. In `exptools`, we recommend that you create your trials, which are operationalized as `Trial` objects from the `exptools2`-specific `Trial` class, *before* you run your session (we'll explain how to do this later). Then, once you have created your trials and stored this, e.g., in an attributed called `trials`, you can `start` your experiment, loop over your trials (i.e., `run` them one by one), and finally `close` your session. Below, we outline how our example `GstroopSession` may look like:
+As outlined before, any session should contain a (predefined) number of trials. In `exptools`, we recommend that you create your trials, which are operationalized as `Trial` objects from the `psypy`-specific `Trial` class, *before* you run your session (we'll explain how to do this later). Then, once you have created your trials and stored this, e.g., in an attributed called `trials`, you can `start` your experiment, loop over your trials (i.e., `run` them one by one), and finally `close` your session. Below, we outline how our example `GstroopSession` may look like:
 
 ```python
 class StroopSession(Session):
@@ -163,10 +163,10 @@ After your session finished running, there should be an (BIDS-formatted) events-
 Now, let's discuss these `Trial` objects that we discussed earlier!
 
 ### The `Trial` class
-Next to the base `Session` class, `exptools2` also includes a "template" for trials with the (surprise surprise) `Trial` class. This template again contains some boilerplate code that takes care of accurately timing (and logging) stimuli and responses and should be, just like the `Session` class, *not* be directly used in your experiment. Instead, you should create a new class specific to your experiment that inherits from the base `Trial` class. Let's do this for our Stroop-experiment (this may be implemented in the same file, e.g. `stroop.py`, as your custom session class):
+Next to the base `Session` class, `psypy` also includes a "template" for trials with the (surprise surprise) `Trial` class. This template again contains some boilerplate code that takes care of accurately timing (and logging) stimuli and responses and should be, just like the `Session` class, *not* be directly used in your experiment. Instead, you should create a new class specific to your experiment that inherits from the base `Trial` class. Let's do this for our Stroop-experiment (this may be implemented in the same file, e.g. `stroop.py`, as your custom session class):
 
 ```python
-from exptools2.core import Trial
+from psypy.core import Trial
 
 class StroopTrial(Trial):
     pass 
@@ -223,7 +223,7 @@ class StroopTrial(Trial):
 
 Now, after initialization of a `StroopTrial` object, it has the attributes `fixation_dot` and `word` which correspond to the stimuli that we want to show during this trial. Again, the reason we want to define our stimuli during initialization (as opposed to during "runtime") is that it takes a little bit of time to create these stimuli, which may negatively impact the timing/duration of your trials. 
 
-Now, before explaining the class arguments (such as `session`, `trial_nr`, `phase_durations`, etc.), let's discuss the only thing that is missing from our custom `StroopTrial` class: the `draw` method. This method defines what happens (and when this happens) during our trial. You *always* need to define this method in your custom trials (otherwise `exptools2`/Psychopy does not know what to do with your stimuli!). In this method is where the "phases" come in. As said, we assume that trials contain (one or more) phases, in which different things need to happen. Therefore, the structure of any `draw` method is something along the lines of: "if we're in phase 0, then draw this stimulus, elif we're in phase 1, then draw this stimulus, etc.". So, for our Stroop-task, our method could look something like this:
+Now, before explaining the class arguments (such as `session`, `trial_nr`, `phase_durations`, etc.), let's discuss the only thing that is missing from our custom `StroopTrial` class: the `draw` method. This method defines what happens (and when this happens) during our trial. You *always* need to define this method in your custom trials (otherwise `psypy`/Psychopy does not know what to do with your stimuli!). In this method is where the "phases" come in. As said, we assume that trials contain (one or more) phases, in which different things need to happen. Therefore, the structure of any `draw` method is something along the lines of: "if we're in phase 0, then draw this stimulus, elif we're in phase 1, then draw this stimulus, etc.". So, for our Stroop-task, our method could look something like this:
 
 ```python
 class StroopTrial(Trial):
@@ -249,7 +249,7 @@ class StroopTrial(Trial):
             self.word.draw()
 ```
 
-That's it! Of course, your `draw` method may be much more complex depending on the number of stimuli/phases of your trials. You won't actually call the `draw` method yourself; this happens in the `run` method defined in the base `Trial` class. Basically, this method loops over your custom `draw` method for a prespecific time period and advances the phase (i.e., `self.phase`) when the time period has finished. But how does `exptools2` know how long to run a particular phase? This is were the arguments during initialization of your `Trial` object come in! We'll discuss these parameters one by one, because they're quite important.
+That's it! Of course, your `draw` method may be much more complex depending on the number of stimuli/phases of your trials. You won't actually call the `draw` method yourself; this happens in the `run` method defined in the base `Trial` class. Basically, this method loops over your custom `draw` method for a prespecific time period and advances the phase (i.e., `self.phase`) when the time period has finished. But how does `psypy` know how long to run a particular phase? This is were the arguments during initialization of your `Trial` object come in! We'll discuss these parameters one by one, because they're quite important.
 
 #### The `session` argument
 In order to run your trial correctly, the `Trial` object should now some settings from the session, such as monitor settings, the session timer, etc. To allow access to this information about the session, we simply add the `Session` object to the list of expected parameters of trials! This may be a bit counterintuitive, because we told you to create trials *within* the session -- so how should you pass the session object it*self* to your (custom) `Trial` class upon initialization? Well, you probably guessed it from the phrasing: we can simply pass `self`!
@@ -320,7 +320,7 @@ class StroopSession(Session):
 Setting the `verbose` argument to `True` prints a bunch of stuff to the terminal while running your experiment (such as timing/onset of phases/trials) which may be nice during testing/debugging your experiment. As printing to `stdout` takes non-trivial amount of time, set this parameter to `False` when you're running your experiment for real.
 
 ### The `load_during_next` argument (ADVANCED)
-This option (default `None`) is quite "advanced". It allows you to specify a particular phase during which `exptools2` should load the next trial. This option is useful when you don't want to initialize all trials before running your trial-loop, for example when this would take very long time (e.g., when loading thousands of images in a rapid visual processing experiment). When using this method, your session class should have a method called `create_trial` with a single argument reflecting the index of the trial that should be loaded. You are responsible of making sure that, given a particular trial-index, the correct trial will be loaded. To "load" a trial, you could append it to a list of trials, e.g., `self.trials`:
+This option (default `None`) is quite "advanced". It allows you to specify a particular phase during which `psypy` should load the next trial. This option is useful when you don't want to initialize all trials before running your trial-loop, for example when this would take very long time (e.g., when loading thousands of images in a rapid visual processing experiment). When using this method, your session class should have a method called `create_trial` with a single argument reflecting the index of the trial that should be loaded. You are responsible of making sure that, given a particular trial-index, the correct trial will be loaded. To "load" a trial, you could append it to a list of trials, e.g., `self.trials`:
 
 ```python
 
@@ -345,7 +345,7 @@ class SessionWithManyImages(Session):
 
 ```python
 import random
-from exptools2.core import Trial, Session
+from psypy.core import Trial, Session
 from psychopy.visual import TextStim, Circle
 
 
