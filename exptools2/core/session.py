@@ -7,7 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from psychopy import core
 from psychopy.sound import Sound
-from psychopy.hardware.emulator import SyncGenerator
+# mri emulator not needed for EEG experiments, therefore exclude it
+# from psychopy.hardware.emulator import SyncGenerator 
 from psychopy.visual import Window, TextStim
 from psychopy.event import waitKeys, Mouse
 from psychopy.monitors import Monitor
