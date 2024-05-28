@@ -1,57 +1,118 @@
-name: exp
-
+name: psypy
 channels:
   - defaults
-  - conda-forge
-  - anaconda
-
 dependencies:
-  - python=3.10
-  - mamba
-  - ipython
-  - matplotlib
-  - pandas
-  - scikit-learn
-  - scikit-image
-  - numpy
-  - pandas
-  - pyopengl
-  - pillow
-  - lxml
-  - xlrd
-  - configobj
-  - pyyaml
-  - gevent
-  - greenlet
-  - msgpack-python
-  - psutil
-  - pytables
-  - requests
-  - cffi
-  - seaborn
-  - wxpython==4.1.1
-  - cython
-  - pyzmq
-  - pyserial
-  - qt
-  - pyqt
-  - pyglet
-  - pysoundfile
-  - python-bidi
-  - moviepy
-  - pyosf
-  - python-sounddevice
-  - portaudio
-  - pip
+  - bzip2=1.0.8
+  - ca-certificates=2024.3.11
+  - libffi=3.4.4
+  - openssl=3.0.13
+  - pip=24.0
+  - python=3.10.14
+  - sqlite=3.45.3
+  - tk=8.6.14
+  - vc=14.2
+  - vs2015_runtime=14.29.30133
+  - wheel=0.43.0
+  - xz=5.4.6
+  - zlib=1.2.13
   - pip:
-    # - pyaudio
-    # - zmq
-    # - json-tricks
-    # - pyparallel
-    # - sounddevice
-    # - pygame
-    # - pysoundcard
-    # - psychopy_ext
-    - psychopy
-    - git+https://github.com/VU-Cog-Sci/exptools2/
-
+      - arabic-reshaper==3.0.0
+      - asttokens==2.4.1
+      - astunparse==1.6.3
+      - beautifulsoup4==4.12.3
+      - blosc2==2.6.2
+      - certifi==2024.2.2
+      - cffi==1.16.0
+      - charset-normalizer==3.3.2
+      - colorama==0.4.6
+      - contourpy==1.2.1
+      - cryptography==42.0.7
+      - cycler==0.12.1
+      - decorator==5.1.1
+      - dukpy==0.3.1
+      - elementpath==4.4.0
+      - esprima==4.0.1
+      - et-xmlfile==1.1.0
+      - exceptiongroup==1.2.1
+      - executing==2.0.1
+      - ffpyplayer==4.5.1
+      - fonttools==4.52.4
+      - freetype-py==2.4.0
+      - future==1.0.0
+      - gevent==24.2.1
+      - gitdb==4.0.11
+      - gitpython==3.1.43
+      - greenlet==3.0.3
+      - html2text==2024.2.26
+      - idna==3.7
+      - imageio==2.34.1
+      - imageio-ffmpeg==0.4.9
+      - ipython==8.24.0
+      - javascripthon==0.12
+      - jedi==0.19.1
+      - json-tricks==3.17.3
+      - kiwisolver==1.4.5
+      - markdown-it-py==3.0.0
+      - matplotlib==3.9.0
+      - matplotlib-inline==0.1.7
+      - mdurl==0.1.2
+      - msgpack==1.0.8
+      - msgpack-numpy==0.4.8
+      - ndindex==1.8
+      - numexpr==2.10.0
+      - numpy==1.26.4
+      - opencv-python==4.9.0.80
+      - openpyxl==3.1.2
+      - packaging==24.0
+      - pandas==2.2.2
+      - parso==0.8.4
+      - pillow==10.3.0
+      - prompt-toolkit==3.0.45
+      - psutil==5.9.8
+      - psychopy==2024.1.4
+      - psychtoolbox==3.0.19.0
+      - pure-eval==0.2.2
+      - py-cpuinfo==9.0.0
+      - pycparser==2.22
+      - pyglet==1.4.11
+      - pygments==2.18.0
+      - pyparallel==0.2.2
+      - pyparsing==3.1.2
+      - pypi-search==2.0
+      - pypiwin32==223
+      - pyqt6==6.7.0
+      - pyqt6-qt6==6.7.0
+      - pyqt6-sip==13.6.0
+      - pyserial==3.5
+      - python-bidi==0.4.2
+      - python-dateutil==2.9.0.post0
+      - python-gitlab==4.6.0
+      - python-vlc==3.0.11115
+      - pytz==2024.1
+      - pywin32==306
+      - pywinhook==1.6.2
+      - pyyaml==6.0.1
+      - pyzmq==26.0.3
+      - questplus==2023.1
+      - requests==2.32.2
+      - requests-toolbelt==1.0.0
+      - scipy==1.13.1
+      - setuptools==66.1.1
+      - six==1.16.0
+      - smmap==5.0.1
+      - soundfile==0.12.1
+      - soupsieve==2.5
+      - stack-data==0.6.3
+      - tables==3.9.2
+      - traitlets==5.14.3
+      - typing-extensions==4.12.0
+      - tzdata==2024.1
+      - ujson==5.10.0
+      - urllib3==2.2.1
+      - wcwidth==0.2.13
+      - websockets==12.0
+      - wxpython==4.2.1
+      - xarray==2024.5.0
+      - xmlschema==3.3.1
+      - zope-event==5.0
+      - zope-interface==6.4.post2
