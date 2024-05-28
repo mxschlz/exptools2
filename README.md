@@ -4,28 +4,14 @@ The `exptools` Python package provides a way to easily and quickly create (psych
 
 # Installation instructions
 ## Installation using conda
-The latest master branch on github can be installed by creating a [conda](https://docs.conda.io/projects/conda/en/latest/index.html) environment using the following commands:
-```
-conda create -n exptools2 python=3.9
-conda activate exptools2
-conda install numpy scipy matplotlib pandas pyopengl pillow lxml openpyxl xlrd configobj pyyaml gevent greenlet msgpack-python psutil pytables requests[security] cffi seaborn wxpython cython pyzmq pyserial qt pyqt
-conda install -c conda-forge pyglet pysoundfile python-bidi moviepy pyosf
-pip install zmq json-tricks pyparallel sounddevice pygame pysoundcard psychopy_ext psychopy
-pip install git+https://github.com/VU-Cog-Sci/exptools2/
-```
+Import the conda environment from environment.yml file. Clone the repository (https://github.com/mxschlz/exptools2.git)  - preferably to the site-packages within the environment folder - and cd to it. Do "pip install -e ." and you are done! 😸 
 
 For using the eyetracker, you also need to install `pylink`.
-
-If you want to run a `exptools2`-script, you now should always start by activating the `exptool2`-conda environment. This is done in a shell by typing:
-```
-conda activate exptools2
-```
 
 ## Manual installation
 If you have the `EyeLink`-folder from `SRResearch`, you can install `pylink` for various python versions. You can find the wheels in `/usr/share/EyeLink/SampleExperiments/Python/wheels`, which are directly pip-installable for your given python version. 
 
-
-To install the repository, clone the repository ("https://github.com/mxschlz/exptools2.git"), cd to the cloned repository and install the package ("pip install -e .")
+To install the repository, clone the repository (https://github.com/mxschlz/exptools2.git), cd to the cloned repository and install the package ("pip install -e .")
 
 If you want to use the eytracker functionality with Eyelink eyetrackers, you also need the `pylink` package (for Python3!) from SR Research. This is not yet publicly available; if you need it, send Lukas an email.
 
