@@ -25,15 +25,7 @@ conda activate exptools2
 If you have the `EyeLink`-folder from `SRResearch`, you can install `pylink` for various python versions. You can find the wheels in `/usr/share/EyeLink/SampleExperiments/Python/wheels`, which are directly pip-installable for your given python version. 
 
 
-The package is not yet pip-installable. To install it, clone the repository (`git clone https://github.com/VU-Cog-Sci/exptools2.git`) and install the package (`python setup.py install`). The package assumes that the following dependencies are installed:
-
-- `psychopy>=3.0.5`
-- `pyyaml`
-- `pyglet==1.3.2`
-- `pandas>=0.23.0`
-- `numpy>=1.14`
-- `msgpack_numpy`
-- `matplotlib`
+To install the repository, clone the repository ("https://github.com/mxschlz/exptools2.git"), cd to the cloned repository and install the package ("pip install -e .")
 
 If you want to use the eytracker functionality with Eyelink eyetrackers, you also need the `pylink` package (for Python3!) from SR Research. This is not yet publicly available; if you need it, send Lukas an email.
 
