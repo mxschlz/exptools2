@@ -15,6 +15,7 @@ from psychopy.monitors import Monitor
 from psychopy import logging
 from psychopy import prefs as psychopy_prefs
 from ..stimuli import create_circle_fixation
+from datetime import datetime
 
 
 class Session:
@@ -42,7 +43,7 @@ class Session:
             Timer used to time phases
         exp_start : float
             Time at actual start of experiment
-        log : psychopy Logfile
+        logfile : psychopy Logfile
             Logfile with info about exp (level >= EXP)
         nr_frames : int
             Counter for number of frames for each phase
@@ -53,11 +54,21 @@ class Session:
         actual_framerate : float
             Estimated framerate of monitor
         """
+        self.LOGGING_ENCODER = {
+            "DEBUG": 10,
+            "INFO": 20,
+            "WARNING": 30,
+            "ERROR": 40,
+            "DATA": 25,
+            "EXP": 22
+        }
+
         self.output_str = output_str
         self.output_dir = (
             op.join(os.getcwd(), "logs") if output_dir is None else output_dir
         )
         self.settings_file = settings_file
+
         self.clock = core.Clock()
         self.timer = core.Clock()
         self.exp_start = None
@@ -71,11 +82,16 @@ class Session:
                 "phase",
                 "response",
                 "nr_frames",
+                "rt"
             ]
         )
         self.nr_frames = 0  # keeps track of nr of nr of frame flips
         self.first_trial = True
         self.closed = False
+
+        # track the date
+        self.start_time = datetime.now()  # starting date time
+        self.name = f"{output_str}_{self.start_time.strftime('%B_%d_%Y_%H_%M_%S')}"
 
         # Initialize
         self.settings = self._load_settings()
@@ -93,6 +109,8 @@ class Session:
         self.mri_trigger = None  # is set below
         self.mri_simulator = self._setup_mri()
 
+        self.test = False  # for quitting
+
     def _load_settings(self):
         """Loads settings and sets preferences."""
         default_settings_path = op.join(
@@ -103,7 +121,7 @@ class Session:
 
         if self.settings_file is None:
             settings = default_settings
-            logging.warn("No settings-file given; using default logfile")
+            logging.warn("No settings-file given; using default settings file")
         else:
             if not op.isfile(self.settings_file):
                 raise IOError(f"Settings-file {self.settings_file} does not exist!")
@@ -119,7 +137,7 @@ class Session:
         if not op.isdir(self.output_dir):
             os.makedirs(self.output_dir)
 
-        settings_out = op.join(self.output_dir, self.output_str + "_expsettings.yml")
+        settings_out = op.join(self.output_dir, self.name + "_expsettings.yml")
         with open(settings_out, "w") as f_out:  # write settings to disk
             yaml.dump(settings, f_out, indent=4, default_flow_style=False)
 
@@ -157,8 +175,8 @@ class Session:
 
     def _create_logfile(self):
         """Creates a logfile."""
-        log_path = op.join(self.output_dir, self.output_str + "_log.txt")
-        return logging.LogFile(f=log_path, filemode="w", level=logging.EXP)
+        log_path = op.join(self.output_dir, self.name + "_log.txt")
+        return logging.LogFile(f=log_path, filemode="w", level=self.LOGGING_ENCODER[self.settings["logging"]["level"]])
 
     def _setup_mri(self):
         """Initializes an MRI simulator"""
@@ -256,34 +274,19 @@ class Session:
 
         print(f"\nDuration experiment: {self.exp_stop:.3f}\n")
 
-        if not op.isdir(self.output_dir):
-            os.makedirs(self.output_dir)
+        if not self.test:
+            self.plot_frame_intervals()
+            self.plot_frame_intervals2()
+            # save data
+            self.save_data()
 
-        self.global_log = pd.DataFrame(self.global_log).set_index("trial_nr")
-        self.global_log["onset_abs"] = self.global_log["onset"] + self.exp_start
+            if self.mri_simulator is not None:
+                self.mri_simulator.stop()
 
-        # Only non-responses have a duration
-        nonresp_idx = ~self.global_log.event_type.isin(["response", "trigger", "pulse"])
-        last_phase_onset = self.global_log.loc[nonresp_idx, "onset"].iloc[-1]
-        dur_last_phase = self.exp_stop - last_phase_onset
-        durations = np.append(
-            self.global_log.loc[nonresp_idx, "onset"].diff().values[1:], dur_last_phase
-        )
-        self.global_log.loc[nonresp_idx, "duration"] = durations
+        self.win.close()
+        self.closed = True
 
-        # Same for nr frames
-        nr_frames = np.append(
-            self.global_log.loc[nonresp_idx, "nr_frames"].values[1:], self.nr_frames
-        )
-        self.global_log.loc[nonresp_idx, "nr_frames"] = nr_frames.astype(int)
-
-        # Round for readability and save to disk
-        self.global_log = self.global_log.round(
-            {"onset": 5, "onset_abs": 5, "duration": 5}
-        )
-        f_out = op.join(self.output_dir, self.output_str + "_events.tsv")
-        self.global_log.to_csv(f_out, sep="\t", index=True)
-
+    def plot_frame_intervals2(self):
         # Create figure with frametimes (to check for dropped frames)
         fig, ax = plt.subplots(figsize=(15, 5))
         ax.plot(self.win.frameIntervals)
@@ -297,13 +300,35 @@ class Session:
             ylabel="Interval (sec.)",
             ylim=(-0.01, 0.125),
         )
-        fig.savefig(op.join(self.output_dir, self.output_str + "_frames.pdf"))
+        fig.savefig(op.join(self.output_dir, self.name + f"_frames.pdf"))
 
-        if self.mri_simulator is not None:
-            self.mri_simulator.stop()
+    def plot_frame_intervals(self):
+        # calculate some values
+        intervalsMS = np.array(self.win.frameIntervals) * 1000
+        m = round(np.mean(intervalsMS), 2)
+        sd = round(np.std(intervalsMS), 2)
+        # se=sd/pylab.sqrt(len(intervalsMS)) # for CI of the mean
 
-        self.win.close()
-        self.closed = True
+        distString = (f"Mean = {m}ms, SD = {sd}, 99% CI(frame) = {round(m-2.58*sd, 2)} - {round(m+2.58*sd, 2)}")
+        nTotal = len(intervalsMS)
+        nDropped = round(sum(intervalsMS > (1.5 * m)), 2)
+        droppedString = f"Dropped frames = {nDropped}/{nTotal} = {round(100*nDropped/float(nTotal), 2)}%"
+        # droppedString = msg % (nDropped, nTotal, 100 * nDropped / float(nTotal))
+
+        # plot the frameintervals
+        plt.figure(figsize=[12, 8])
+        plt.subplot(1, 2, 1)
+        plt.plot(intervalsMS, '-')
+        plt.ylabel('t (ms)')
+        plt.xlabel('frame N')
+        plt.title(droppedString)
+
+        plt.subplot(1, 2, 2)
+        plt.hist(intervalsMS, 50, histtype='stepfilled')
+        plt.xlabel('t (ms)')
+        plt.ylabel('n frames')
+        plt.title(distString)
+        plt.savefig(op.join(self.output_dir, self.name + f"_frames_hist.pdf"))
 
     def quit(self):
         """Quits Python tread (and window if necessary)."""
@@ -312,6 +337,38 @@ class Session:
             self.close()
 
         core.quit()
+
+    def save_data(self):
+        self._set_exp_stop()
+        if not op.isdir(self.output_dir):
+            os.makedirs(self.output_dir)
+
+        self.local_log = pd.DataFrame(self.global_log).set_index("trial_nr")
+        self.local_log["onset_abs"] = self.local_log["onset"] + self.exp_start
+
+        # Only non-responses have a duration
+        nonresp_idx = ~self.local_log.event_type.isin(["response", "trigger", "pulse"])
+        last_phase_onset = self.local_log.loc[nonresp_idx, "onset"].iloc[-1]
+        dur_last_phase = self.exp_stop - last_phase_onset
+        durations = np.append(
+            self.local_log.loc[nonresp_idx, "onset"].diff().values[1:], dur_last_phase
+        )
+        self.local_log.loc[nonresp_idx, "duration"] = durations
+
+        # Same for nr frames
+        nr_frames = np.append(
+            self.local_log.loc[nonresp_idx, "nr_frames"].values[1:], self.nr_frames
+        )
+        self.local_log.loc[nonresp_idx, "nr_frames"] = nr_frames.astype(int)
+
+        # Round for readability and save to disk
+        self.local_log = self.local_log.round(
+            {"onset": 3, "onset_abs": 3, "duration": 3}
+        )
+        f_out = op.join(self.output_dir, self.name + "_events.xlsx")
+        self.local_log.to_excel(f_out, index=True)
+        # set saving output to None for RAM
+        del self.local_log
 
 
 def _merge_settings(default, user):

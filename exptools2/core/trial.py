@@ -67,6 +67,7 @@ class Trial:
         self.phase = 0
         self.last_resp = None
         self.last_resp_onset = None
+        self.current_key = None  # for checking current responses with target response
         if hasattr(self.session, 'tracker'):
             if self.session.eyetracker_on:
                 self.eyetracker_on = True
@@ -172,6 +173,7 @@ class Trial:
                 self.session.quit()
 
             for key, t in events:
+                # self.current_key = int(key) if key.isdigit() else None
 
                 if key == self.session.mri_trigger:
                     event_type = 'pulse'
@@ -184,6 +186,8 @@ class Trial:
                 self.session.global_log.loc[idx, 'event_type'] = event_type
                 self.session.global_log.loc[idx, 'phase'] = self.phase
                 self.session.global_log.loc[idx, 'response'] = key
+                self.session.global_log.loc[idx, 'rt'] = t - self.start_trial
+
 
                 # for param, val in self.parameters.items():
                     # self.session.global_log.loc[idx, param] = val
@@ -198,9 +202,7 @@ class Trial:
                     msg = f'start_type-{event_type}_trial-{self.trial_nr}_phase-{self.phase}_key-{key}_time-{t}'
                     self.session.tracker.sendMessage(msg)
 
-                #self.trial_log['response_key'][self.phase].append(key)
-                #self.trial_log['response_onset'][self.phase].append(t)
-                #self.trial_log['response_time'][self.phase].append(t - self.start_trial)
+                # self.session.global_log['response_key'][self.phase].append(key)
 
                 if key != self.session.mri_trigger:
                     self.last_resp = key
