@@ -6,16 +6,16 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from psychopy import core
-from psychopy.sound import Sound
 # mri emulator not needed for EEG experiments, therefore exclude it
 # from psychopy.hardware.emulator import SyncGenerator 
-from psychopy.visual import Window, TextStim
+from psychopy.visual import Window, TextStim, Rect
 from psychopy.event import waitKeys, Mouse
 from psychopy.monitors import Monitor
 from psychopy import logging
 from psychopy import prefs as psychopy_prefs
-from ..stimuli import create_circle_fixation
+from ..stimuli import create_circle_fixation, create_fixation_cross, create_virtual_response_box
 from datetime import datetime
+import math
 
 
 class Session:
@@ -62,7 +62,6 @@ class Session:
             "DATA": 25,
             "EXP": 22
         }
-
         self.output_str = output_str
         self.output_dir = (
             op.join(os.getcwd(), "logs") if output_dir is None else output_dir
@@ -97,18 +96,28 @@ class Session:
         self.settings = self._load_settings()
         self.monitor = self._create_monitor()
         self.win = self._create_window()
-        self.width_deg = 2 * np.degrees(
-            np.arctan(self.monitor.getWidth() / self.monitor.getDistance())
-        )
+        self.units = self.settings["preferences"]["general"]["units"]
+        # get the visual angle by taking distance and size of the monitor and compute the width of it in degrees
+        self.width_deg = math.degrees(2 * math.atan((self.monitor.getWidth() / 2) / self.monitor.getDistance()))
+        # calculate how many pixels the screen contains per degree
         self.pix_per_deg = self.win.size[0] / self.width_deg
-        self.mouse = Mouse(**self.settings["mouse"])
+        self.mouse = Mouse(**self.settings["mouse"], win=self.win)
+        self.mouse_was_pressed = None  # place holder
+        self.keys_pressed_last_frame = None  # place holder
         self.logfile = self._create_logfile()
-        self.default_fix = create_circle_fixation(
-            self.win, radius=0.075, color=(1, 1, 1)
-        )
+        if self.settings["session"]["fixation_type"] == "circle":
+            self.default_fix = create_circle_fixation(self.win)
+        elif self.settings["session"]["fixation_type"] == "cross":
+            self.default_fix = create_fixation_cross(self.win)
+        # define whether mouse clicks or button responses are wanted
+        self.response_device = self.settings["session"]["response_device"]
         self.mri_trigger = None  # is set below
         self.mri_simulator = self._setup_mri()
-
+        if self.response_device == "mouse":
+            self.virtual_response_box = create_virtual_response_box(win=self.win,
+                                                                    digits=self.settings["numpad"]["digits"],
+                                                                    size=self.settings["numpad"]["size"],
+                                                                    units=self.units)
         self.test = False  # for quitting
 
     def _load_settings(self):
@@ -147,7 +156,8 @@ class Session:
                 pref_subclass = getattr(psychopy_prefs, preftype)
                 pref_subclass[key] = value
                 setattr(psychopy_prefs, preftype, pref_subclass)
-
+                # print(psychopy_prefs.hardware)
+        self.set_audio_hardware(library=settings["preferences"]["general"]["audioLib"])
         return settings
 
     def _create_monitor(self):
@@ -210,7 +220,8 @@ class Session:
             self.mri_simulator.start()
 
         self.win.recordFrameIntervals = True
-
+        # set audio hardware
+        # self.set_audio_hardware(library=self.settings["preferences"]["general"]["audioLib"])
         if wait_n_triggers is not None:
             print(f"Waiting {wait_n_triggers} triggers before starting ...")
             n_triggers = 0
@@ -347,7 +358,7 @@ class Session:
         self.local_log["onset_abs"] = self.local_log["onset"] + self.exp_start
 
         # Only non-responses have a duration
-        nonresp_idx = ~self.local_log.event_type.isin(["response", "trigger", "pulse"])
+        nonresp_idx = ~self.local_log.event_type.isin(["mouse_click", "key_press", "trigger", "pulse"])
         last_phase_onset = self.local_log.loc[nonresp_idx, "onset"].iloc[-1]
         dur_last_phase = self.exp_stop - last_phase_onset
         durations = np.append(
@@ -359,8 +370,10 @@ class Session:
         nr_frames = np.append(
             self.local_log.loc[nonresp_idx, "nr_frames"].values[1:], self.nr_frames
         )
+        # Identify and handle NaN values
+        # nan_indices = np.isnan(nr_frames)
+        # nr_frames[nan_indices] = 0  # Replace NaNs with 0
         self.local_log.loc[nonresp_idx, "nr_frames"] = nr_frames.astype(int)
-
         # Round for readability and save to disk
         self.local_log = self.local_log.round(
             {"onset": 3, "onset_abs": 3, "duration": 3}
@@ -369,6 +382,12 @@ class Session:
         self.local_log.to_excel(f_out, index=True)
         # set saving output to None for RAM
         del self.local_log
+
+    @staticmethod
+    def set_audio_hardware(library):
+        from psychopy import prefs
+        prefs.hardware["audioLib"] = [library]
+        logging.info(f"Audio hardware is: {prefs.hardware}")
 
 
 def _merge_settings(default, user):
