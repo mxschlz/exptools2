@@ -68,6 +68,7 @@ class Trial:
         self.last_resp = None
         self.last_resp_onset = None
         self.current_key = None  # for checking current responses with target response
+        self.current_selected_digit = None  # for checking above which digit the cursor currently lies
         if hasattr(self.session, 'tracker'):
             if self.session.eyetracker_on:
                 self.eyetracker_on = True
@@ -164,50 +165,70 @@ class Trial:
         """ Allows you to break out of the trial while not completely finished """
         self.exit_trial = True
 
+    def _log_event(self, event_type, response, t):
+        """Helper function to log an event to the global log."""
+
+        idx = self.session.global_log.shape[0]
+        self.session.global_log.loc[idx, 'trial_nr'] = self.trial_nr
+        self.session.global_log.loc[idx, 'onset'] = t
+        self.session.global_log.loc[idx, 'event_type'] = event_type
+        self.session.global_log.loc[idx, 'phase'] = self.phase
+        self.session.global_log.loc[idx, 'response'] = response
+        self.session.global_log.loc[idx, 'rt'] = t - self.start_trial
+
+        for param, val in self.parameters.items():
+            if isinstance(val, (np.ndarray, list)):
+                for i, x in enumerate(val):
+                    self.session.global_log.loc[idx, param + '_%04i' % i] = x
+            else:
+                self.session.global_log.loc[idx, param] = val
+
+        if self.eyetracker_on:
+            msg = f'start_type-{event_type}_trial-{self.trial_nr}_phase-{self.phase}_key-{response}_time-{t}'
+            self.session.tracker.sendMessage(msg)
+
     def get_events(self):
-        """ Logs responses/triggers """
+        """Logs responses/triggers from keyboard and mouse."""
+
         events = event.getKeys(timeStamped=self.session.clock)
-        if events:
-            if 'q' in [ev[0] for ev in events]:  # specific key in settings?
+
+        # Handle keyboard events
+        for key, t in events:
+            if key == 'q':
                 self.session.close()
                 self.session.quit()
+                return events  # Exit early if 'q' is pressed
 
-            for key, t in events:
-                # self.current_key = int(key) if key.isdigit() else None
-
-                if key == self.session.mri_trigger:
-                    event_type = 'pulse'
-                else:
-                    event_type = 'response'
-
-                idx = self.session.global_log.shape[0]
-                self.session.global_log.loc[idx, 'trial_nr'] = self.trial_nr
-                self.session.global_log.loc[idx, 'onset'] = t
-                self.session.global_log.loc[idx, 'event_type'] = event_type
-                self.session.global_log.loc[idx, 'phase'] = self.phase
-                self.session.global_log.loc[idx, 'response'] = key
-                self.session.global_log.loc[idx, 'rt'] = t - self.start_trial
-
-
-                # for param, val in self.parameters.items():
-                    # self.session.global_log.loc[idx, param] = val
-                for param, val in self.parameters.items():  # add parameters to log
-                    if type(val) == np.ndarray or type(val) == list:
-                        for i, x in enumerate(val):
-                            self.session.global_log.loc[idx, param+'_%4i'%i] = x 
-                    else:       
-                        self.session.global_log.loc[idx, param] = val
-
-                if self.eyetracker_on:  # send msg to eyetracker
-                    msg = f'start_type-{event_type}_trial-{self.trial_nr}_phase-{self.phase}_key-{key}_time-{t}'
-                    self.session.tracker.sendMessage(msg)
-
-                # self.session.global_log['response_key'][self.phase].append(key)
+            # Check if the key was already pressed in the previous frame
+            if key not in self.session.keys_pressed_last_frame:
+                event_type = 'pulse' if key == self.session.mri_trigger else 'key_press'
+                self._log_event(event_type, key, t)
 
                 if key != self.session.mri_trigger:
                     self.last_resp = key
                     self.last_resp_onset = t
+        # Update keys_pressed_last_frame for the next iteration
+        self.session.keys_pressed_last_frame = events  # Store the current frame's events
+        # Handle mouse clicks
+        for i, digit in enumerate(self.session.virtual_response_box):  # skip the rectangle (i==0)
+            if i == 0:
+                continue
+            # show feedback by digit color change
+            if digit.contains(self.session.mouse):
+                digit.color = "lightgray"
+            else:
+                digit.color = "white"
+            if self.session.mouse.getPressed()[0] and not self.session.mouse_was_pressed:
+                response = self.session.settings["numpad"]["digits"][i - 1]
+                t = self.session.clock.getTime()
+                self._log_event('mouse_click', response, t)  # Or 'mouse_click'
 
+                self.last_resp = response
+                self.last_resp_onset = t
+                break
+            # self.session.mouse.clickReset()  # Update mouse position
+        # Track mouse button state
+        self.session.mouse_was_pressed = self.session.mouse.getPressed()[0]
         return events
 
     def load_next_trial(self, phase_dur):
