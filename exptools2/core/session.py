@@ -1,4 +1,6 @@
 import os
+
+import psychopy.event
 import yaml
 import collections
 import os.path as op
@@ -103,8 +105,9 @@ class Session:
         self.pix_per_deg = self.win.size[0] / self.width_deg
         self.mouse = Mouse(**self.settings["mouse"], win=self.win)
         self.mouse_was_pressed = None  # place holder
-        self.keys_pressed_last_frame = None  # place holder
+        self.keys_pressed_last_frame = list()  # place holder
         self.logfile = self._create_logfile()
+        self.eyetracker_on = self.settings["mode"]["eyetracking_on"]
         if self.settings["session"]["fixation_type"] == "circle":
             self.default_fix = create_circle_fixation(self.win)
         elif self.settings["session"]["fixation_type"] == "cross":
@@ -157,7 +160,8 @@ class Session:
                 pref_subclass[key] = value
                 setattr(psychopy_prefs, preftype, pref_subclass)
                 # print(psychopy_prefs.hardware)
-        self.set_audio_hardware(library=settings["preferences"]["general"]["audioLib"])
+        self.set_audio_hardware(library=settings["preferences"]["general"]["audioLib"],
+                                latency=settings["preferences"]["general"]["audioLatencyMode"])
         return settings
 
     def _create_monitor(self):
@@ -384,9 +388,10 @@ class Session:
         del self.local_log
 
     @staticmethod
-    def set_audio_hardware(library):
+    def set_audio_hardware(library, latency):
         from psychopy import prefs
         prefs.hardware["audioLib"] = [library]
+        prefs.hardware["audioLatencyMode"] = str(latency)
         logging.info(f"Audio hardware is: {prefs.hardware}")
 
 
