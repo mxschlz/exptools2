@@ -1,6 +1,4 @@
 import numpy as np
-import pandas as pd
-from psychopy import core
 from psychopy import event
 from psychopy import logging
 
@@ -215,7 +213,7 @@ class Trial:
                 continue
             # show feedback by digit color change
             if digit.contains(self.session.mouse):
-                digit.color = "lightgray"
+                digit.color = "grey"
             else:
                 digit.color = "white"
             if self.session.mouse.getPressed()[0] and not self.session.mouse_was_pressed:
