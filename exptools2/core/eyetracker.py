@@ -6,11 +6,10 @@ from psychopy import core
 from psychopy import misc
 from psychopy import event
 from psychopy.visual import TextStim, Circle
-from psychopy import visual, sound
+from psychopy import visual
 from psychopy import logging
 from PIL import Image, ImageOps
 from .session import Session
-from .trial import Trial
 
 
 try:
@@ -193,10 +192,12 @@ if PYLINK_AVAILABLE:  # super ugly, but don't know an elegant fix atm
             self.targetin.draw()
             self.win.flip()
 
-        def alert_printf(self, msg):
+        @staticmethod
+        def alert_printf(msg):
             print("alert_printf %s" % msg)
 
-        def play_beep(self, beepid):
+        @staticmethod
+        def play_beep(beepid):
             if beepid == pylink.DC_TARG_BEEP or beepid == pylink.CAL_TARG_BEEP:
                 #self.__target_beep__.play()
                 pass
@@ -207,7 +208,8 @@ if PYLINK_AVAILABLE:  # super ugly, but don't know an elegant fix atm
                 #self.__target_beep__done__.play()
                 pass
 
-        def get_input_key(self):
+        @staticmethod
+        def get_input_key():
                 ky = []
                 v = event.getKeys()
                 for key in v:
@@ -240,6 +242,7 @@ if PYLINK_AVAILABLE:  # super ugly, but don't know an elegant fix atm
 
         def record_abort_hide(self):
             pass
+
         def setup_image_display(self, width, height):
             """Initialize the index array that will contain camera image data."""
 
@@ -269,10 +272,6 @@ if PYLINK_AVAILABLE:  # super ugly, but don't know an elegant fix atm
                 )
             else:
                 self.imagetitlestim.setText(text)
-
-        def exit_image_display(self):
-            self.clear_cal_display()
-
 
         def draw_image_line(self, width, line, totlines, buff):
             # Get image info for each line of image
