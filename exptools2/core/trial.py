@@ -205,6 +205,7 @@ class Trial:
                 if key != self.session.mri_trigger:
                     self.last_resp = key
                     self.last_resp_onset = t
+        clicked_digits = []  # Store clicked digits in this list
         # Update keys_pressed_last_frame for the next iteration
         self.session.keys_pressed_last_frame = events  # Store the current frame's events
         # Handle mouse clicks
@@ -217,14 +218,18 @@ class Trial:
             else:
                 digit.color = "white"
             if self.session.mouse.getPressed()[0] and not self.session.mouse_was_pressed:
-                response = self.session.settings["numpad"]["digits"][i - 1]
-                t = self.session.clock.getTime()
-                self._log_event('mouse_click', response, t)  # Or 'mouse_click'
-
-                self.last_resp = response
-                self.last_resp_onset = t
-                break
-            # self.session.mouse.clickReset()  # Update mouse position
+                if digit.contains(self.session.mouse):
+                    clicked_digits.append(i - 1)  # Store the clicked digit index
+                # Decide on the final response after checking all digits
+                if clicked_digits:
+                    # response = self.session.settings["numpad"]["digits"][i - 1]
+                    response = self.session.settings["numpad"]["digits"][clicked_digits[0]]
+                    t = self.session.clock.getTime()
+                    self._log_event('mouse_click', response, t)  # Or 'mouse_click'
+                    self.last_resp = response
+                    self.last_resp_onset = t
+                    break
+            self.session.mouse.clickReset()  # Update mouse position
         # Track mouse button state
         self.session.mouse_was_pressed = self.session.mouse.getPressed()[0]
         return events
