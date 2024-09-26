@@ -209,29 +209,30 @@ class Trial:
         # Update keys_pressed_last_frame for the next iteration
         self.session.keys_pressed_last_frame = events  # Store the current frame's events
         # Handle mouse clicks
-        for i, digit in enumerate(self.session.virtual_response_box):  # skip the rectangle (i==0)
-            if i == 0:
-                continue
-            # show feedback by digit color change
-            if digit.contains(self.session.mouse):
-                digit.color = "grey"
-            else:
-                digit.color = "white"
-            if self.session.mouse.getPressed()[0] and not self.session.mouse_was_pressed:
+        if self.session.virtual_response_box:
+            for i, digit in enumerate(self.session.virtual_response_box):  # skip the rectangle (i==0)
+                if i == 0:
+                    continue
+                # show feedback by digit color change
                 if digit.contains(self.session.mouse):
-                    clicked_digits.append(i - 1)  # Store the clicked digit index
-                # Decide on the final response after checking all digits
-                if clicked_digits:
-                    # response = self.session.settings["numpad"]["digits"][i - 1]
-                    response = self.session.settings["numpad"]["digits"][clicked_digits[0]]
-                    t = self.session.clock.getTime()
-                    self._log_event('mouse_click', response, t)  # Or 'mouse_click'
-                    self.last_resp = response
-                    self.last_resp_onset = t
-                    break
-            self.session.mouse.clickReset()  # Update mouse position
-        # Track mouse button state
-        self.session.mouse_was_pressed = self.session.mouse.getPressed()[0]
+                    digit.color = "grey"
+                else:
+                    digit.color = "white"
+                if self.session.mouse.getPressed()[0] and not self.session.mouse_was_pressed:
+                    if digit.contains(self.session.mouse):
+                        clicked_digits.append(i - 1)  # Store the clicked digit index
+                    # Decide on the final response after checking all digits
+                    if clicked_digits:
+                        # response = self.session.settings["numpad"]["digits"][i - 1]
+                        response = self.session.settings["numpad"]["digits"][clicked_digits[0]]
+                        t = self.session.clock.getTime()
+                        self._log_event('mouse_click', response, t)  # Or 'mouse_click'
+                        self.last_resp = response
+                        self.last_resp_onset = t
+                        break
+                self.session.mouse.clickReset()  # Update mouse position
+            # Track mouse button state
+            self.session.mouse_was_pressed = self.session.mouse.getPressed()[0]
         return events
 
     def load_next_trial(self, phase_dur):
