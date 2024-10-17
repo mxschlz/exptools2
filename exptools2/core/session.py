@@ -1,6 +1,5 @@
 import os
 
-import psychopy.event
 import yaml
 import collections
 import os.path as op
@@ -121,6 +120,8 @@ class Session:
                                                                     digits=self.settings["numpad"]["digits"],
                                                                     size=self.settings["numpad"]["size"],
                                                                     units=self.units)
+        else:
+            self.virtual_response_box = None
         self.test = False  # for quitting
 
     def _load_settings(self):
@@ -156,14 +157,9 @@ class Session:
         exp_prefs = settings["preferences"]  # set preferences globally
         for preftype, these_settings in exp_prefs.items():
             for key, value in these_settings.items():
-                print(f"Setting {key} to {value} in general psychopy preferences")
-                # logging.data(f"Setting {key} to {value} in general psychopy preferences")
                 pref_subclass = getattr(psychopy_prefs, preftype)
                 pref_subclass[key] = value
                 setattr(psychopy_prefs, preftype, pref_subclass)
-                # print(psychopy_prefs.hardware)
-        # self.set_audio_hardware(library=settings["preferences"]["general"]["audioLib"],
-                                # latency=settings["preferences"]["general"]["audioLatencyMode"])
         return settings
 
     def _create_monitor(self):
@@ -292,8 +288,8 @@ class Session:
         print(f"\nDuration experiment: {self.exp_stop:.3f}\n")
 
         if not self.test:
-            self.plot_frame_intervals()
-            self.plot_frame_intervals2()
+            #self.plot_frame_intervals()
+            #self.plot_frame_intervals2()
             # save data
             self.save_data()
 
