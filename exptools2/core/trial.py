@@ -137,6 +137,7 @@ class Trial:
         idx = self.session.global_log.shape[0]
         self.session.global_log.loc[idx, 'onset'] = onset
         self.session.global_log.loc[idx, 'trial_nr'] = self.trial_nr
+        # print(phase)
         self.session.global_log.loc[idx, 'event_type'] = self.phase_names[phase]
         self.session.global_log.loc[idx, 'phase'] = phase
         self.session.global_log.loc[idx, 'nr_frames'] = self.session.nr_frames
@@ -280,6 +281,7 @@ class Trial:
         for phase_dur in self.phase_durations:  # loop over phase durations
             # pass self.phase *now* instead of while logging the phase info.
             self.session.win.callOnFlip(self.log_phase_info, phase=self.phase)
+            #self.log_phase_info(phase=self.phase)
 
             # Start loading in next trial during this phase (if not None)
             if self.load_next_during_phase == self.phase:
@@ -288,6 +290,9 @@ class Trial:
             if self.timing == 'seconds':
                 # Loop until timer is at 0!
                 self.session.timer.add(phase_dur)
+                if self.phase == 2:
+                    self.buffer_zone = self.session.timer.getTime() + 0.1  # 100 ms buffer zone
+                    # print(f"Buffer zone: {self.buffer_zone}")
                 while self.session.timer.getTime() < 0 and not self.exit_phase and not self.exit_trial:
                     self.draw()
                     if self.draw_each_frame:
@@ -315,4 +320,5 @@ class Trial:
                 self.session.timer.reset()
                 break
 
-            self.phase += 1  # advance phase
+            if not self.phase == max(range(len(self.phase_durations))):  # I do not know why but we need this
+                self.phase += 1  # advance phase
