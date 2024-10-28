@@ -1,6 +1,5 @@
 import os
 
-import psychopy.event
 import yaml
 import collections
 import os.path as op
@@ -158,14 +157,9 @@ class Session:
         exp_prefs = settings["preferences"]  # set preferences globally
         for preftype, these_settings in exp_prefs.items():
             for key, value in these_settings.items():
-                #print(f"Setting {key} to {value} in general psychopy preferences")
-                # logging.data(f"Setting {key} to {value} in general psychopy preferences")
                 pref_subclass = getattr(psychopy_prefs, preftype)
                 pref_subclass[key] = value
                 setattr(psychopy_prefs, preftype, pref_subclass)
-                # print(psychopy_prefs.hardware)
-        # self.set_audio_hardware(library=settings["preferences"]["general"]["audioLib"],
-                                # latency=settings["preferences"]["general"]["audioLatencyMode"])
         return settings
 
     def _create_monitor(self):
@@ -391,7 +385,6 @@ class Session:
         # set saving output to None for RAM
         del self.local_log
 
-    # Currently not in use
     @staticmethod
     def set_audio_hardware(library, latency):
         from psychopy import prefs

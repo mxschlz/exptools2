@@ -65,8 +65,6 @@ class Trial:
         self.phase = 0
         self.last_resp = None
         self.last_resp_onset = None
-        self.current_key = None  # for checking current responses with target response
-        self.current_selected_digit = None  # for checking above which digit the cursor currently lies
         if hasattr(self.session, 'tracker'):
             if self.session.eyetracker_on:
                 self.eyetracker_on = True
@@ -148,11 +146,6 @@ class Trial:
                     self.session.global_log.loc[idx, param+'_%4i'%i] = str(x) 
             else:       
                 self.session.global_log.loc[idx, param] = val
-
-        # add to trial_log
-        #idx = self.trial_log.shape[0]
-        #self.trial_log.loc[idx, 'onset'][self.phase].append(onset)
-
         self.session.nr_frames = 0
 
     def stop_phase(self):
@@ -227,7 +220,7 @@ class Trial:
                         # response = self.session.settings["numpad"]["digits"][i - 1]
                         response = self.session.settings["numpad"]["digits"][clicked_digits[0]]
                         t = self.session.clock.getTime()
-                        self._log_event('mouse_click', response, t)  # Or 'mouse_click'
+                        self._log_event(event_type='mouse_click', response=response, t=t)  # Or 'mouse_click'
                         self.last_resp = response
                         self.last_resp_onset = t
                         break
