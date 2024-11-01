@@ -380,8 +380,8 @@ class Session:
         self.local_log = self.local_log.round(
             {"onset": 3, "onset_abs": 3, "duration": 3}
         )
-        f_out = op.join(self.output_dir, self.name + "_events.xlsx")
-        self.local_log.to_excel(f_out, index=True)
+        f_out = op.join(self.output_dir, self.name + "_events.csv")
+        self.local_log.to_csv(f_out, index=True)
         # set saving output to None for RAM
         del self.local_log
 
