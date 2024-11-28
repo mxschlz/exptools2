@@ -7,9 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from psychopy import core
-# mri emulator not needed for EEG experiments, therefore exclude it
-# from psychopy.hardware.emulator import SyncGenerator 
-from psychopy.visual import Window, TextStim, Rect
+from psychopy.visual import Window, TextStim
 from psychopy.event import waitKeys, Mouse
 from psychopy.monitors import Monitor
 from psychopy import logging
@@ -73,7 +71,6 @@ class Session:
         self.timer = core.Clock()
         self.exp_start = None
         self.exp_stop = None
-        self.current_trial = None
         self.global_log = pd.DataFrame(
             columns=[
                 "trial_nr",
@@ -105,8 +102,7 @@ class Session:
         self.mouse = Mouse(**self.settings["mouse"], win=self.win)
         self.mouse_was_pressed = None  # place holder
         self.keys_pressed_last_frame = list()  # place holder
-        self.logfile = self._create_logfile()
-        self.eyetracker_on = self.settings["mode"]["eyetracking_on"]
+        self.logfile = self._create_logfile()  # TODO: do I really need this?
         if self.settings["session"]["fixation_type"] == "circle":
             self.default_fix = create_circle_fixation(self.win)
         elif self.settings["session"]["fixation_type"] == "cross":
@@ -114,7 +110,6 @@ class Session:
         # define whether mouse clicks or button responses are wanted
         self.response_device = self.settings["session"]["response_device"]
         self.mri_trigger = None  # is set below
-        self.mri_simulator = self._setup_mri()
         if self.response_device == "mouse":
             self.virtual_response_box = create_virtual_response_box(win=self.win,
                                                                     digits=self.settings["numpad"]["digits"],
@@ -123,6 +118,7 @@ class Session:
         else:
             self.virtual_response_box = None
         self.test = False  # for quitting
+        self.t_per_frame = None  # duration of one frame
 
     def _load_settings(self):
         """Loads settings and sets preferences."""
@@ -166,22 +162,21 @@ class Session:
         """Creates the monitor based on settings and save to disk."""
         monitor = Monitor(**self.settings["monitor"])
         monitor.setSizePix(self.settings["window"]["size"])
-        monitor.save()  # needed for iohub eyetracker
         return monitor
 
     def _create_window(self):
         """Creates a window based on the settings and calculates framerate."""
         win = Window(monitor=self.monitor.name, **self.settings["window"])
-        win.flip(clearBuffer=True)
+        win.flip()
         self.actual_framerate = win.getActualFrameRate()
         if self.actual_framerate is None:
             logging.warn("framerate not measured, substituting 60 by default")
             self.actual_framerate = 60.0
-        t_per_frame = 1.0 / self.actual_framerate
+        self.t_per_frame = 1.0 / self.actual_framerate
 
         logging.warn(
             f"Actual framerate: {self.actual_framerate:.5f} "
-            f"(1 frame = {t_per_frame:.5f})"
+            f"(1 frame = {self.t_per_frame:.5f})"
         )
         return win
 
@@ -190,56 +185,14 @@ class Session:
         log_path = op.join(self.output_dir, self.name + "_log.txt")
         return logging.LogFile(f=log_path, filemode="w", level=self.LOGGING_ENCODER[self.settings["logging"]["level"]])
 
-    def _setup_mri(self):
-        """Initializes an MRI simulator"""
-        args = self.settings["mri"].copy()
-        self.mri_trigger = self.settings["mri"]["sync"]
-        if args["simulate"]:
-            args.pop("simulate")
-            return SyncGenerator(**args)
-        else:
-            return None
-
-    def start_experiment(self, wait_n_triggers=None, show_fix_during_dummies=True):
-        """Logs the onset of the start of the experiment.
-
-        Parameters
-        ----------
-        wait_n_triggers : int (or None)
-            Number of MRI-triggers ('syncs') to wait before actually
-            starting the experiment. This is useful when you have
-            'dummy' scans that send triggers to the stimulus-PC.
-            Note: clock is still reset right after calling this
-            method.
-        show_fix_during_dummies : bool
-            Whether to show a fixation cross during dummy scans.
-        """
+    def start_experiment(self):
+        """Logs the onset of the start of the experiment."""
         self.exp_start = self.clock.getTime()
         self.clock.reset()  # resets global clock
         self.timer.reset()  # phase-timer
-
-        if self.mri_simulator is not None:
-            self.mri_simulator.start()
-
-        self.win.recordFrameIntervals = True
+        self.win.recordFrameIntervals = False  # TODO: I think I do not need this anyway
         # set audio hardware
         # self.set_audio_hardware(library=self.settings["preferences"]["general"]["audioLib"])
-        if wait_n_triggers is not None:
-            print(f"Waiting {wait_n_triggers} triggers before starting ...")
-            n_triggers = 0
-
-            if show_fix_during_dummies:
-                self.default_fix.draw()
-                self.win.flip()
-
-            while n_triggers < wait_n_triggers:
-                waitKeys(keyList=[self.settings["mri"].get("sync", "t")])
-                n_triggers += 1
-                msg = f"\tOnset trigger {n_triggers}: {self.clock.getTime(): .5f}"
-                msg = msg + "\n" if n_triggers == wait_n_triggers else msg
-                print(msg)
-
-            self.timer.reset()
 
     def _set_exp_stop(self):
         """Called on last win.flip(); timestamps end of exp."""
@@ -292,9 +245,6 @@ class Session:
             #self.plot_frame_intervals2()
             # save data
             self.save_data()
-
-            if self.mri_simulator is not None:
-                self.mri_simulator.stop()
 
         self.win.close()
         self.closed = True
