@@ -1,6 +1,7 @@
 import numpy as np
 from psychopy import event
 from psychopy import logging
+import time
 
 # TODO:
 # - add port_log (like dict(phase=code)) to trial init
@@ -10,8 +11,7 @@ class Trial:
     """ Base class for Trial objects. """
 
     def __init__(self, session, trial_nr, phase_durations, phase_names=None,
-                 parameters=None, timing='seconds', load_next_during_phase=None,
-                 verbose=True, draw_each_frame=True):
+                 parameters=None, timing='seconds', verbose=True, draw_each_frame=True):
         """ Initializes Trial objects.
 
         parameters
@@ -31,8 +31,6 @@ class Trial:
             The "units" of the phase durations. Default is 'seconds', where we
             assume the phase-durations are in seconds. The other option is
             'frames', where the phase-"duration" refers to the number of frames.
-        load_next_during_phase : int (or None)
-            If not None, the next trial will be loaded during this phase
         verbose : bool
             Whether to print extra output (mostly timing info)
         draw_each_frame : bool
@@ -51,10 +49,9 @@ class Trial:
         self.session = session
         self.trial_nr = trial_nr
         self.phase_durations = list(phase_durations)
-        self.phase_names = ['stim'] * len(phase_durations) if phase_names is None else phase_names
+        self.phase_names = phase_names
         self.parameters = dict() if parameters is None else parameters
         self.timing = timing
-        self.load_next_during_phase = load_next_during_phase
         self.verbose = verbose
         self.draw_each_frame = draw_each_frame
 
@@ -65,25 +62,11 @@ class Trial:
         self.phase = 0
         self.last_resp = None
         self.last_resp_onset = None
-        if hasattr(self.session, 'tracker'):
-            if self.session.eyetracker_on:
-                self.eyetracker_on = True
-            else:
-                self.eyetracker_on = False
-        else:
-            self.eyetracker_on = False
 
         self._check_params()
 
     def _check_params(self):
         """ Checks whether parameters/settings are valid. """
-        if self.load_next_during_phase is not None:
-
-            if self.timing == 'frames':
-                msg = ("Loading in next trial is only supported "
-                       "when timing=='seconds'")
-                raise ValueError(msg)
-
         TIMING_OPTS = ['seconds', 'frames']
         if self.timing not in TIMING_OPTS:
             raise ValueError("Please set timing to one of %s" % (TIMING_OPTS,))
@@ -125,11 +108,6 @@ class Trial:
 
         if self.verbose:
             print(msg)
-
-        if self.eyetracker_on:  # send msg to eyetracker
-            msg = f'start_type-stim_trial-{self.trial_nr}_phase-{phase}'
-            self.session.tracker.sendMessage(msg)
-            # Should be log more to the eyetracker? Like 'parameters'?
 
         # add to global log
         idx = self.session.global_log.shape[0]
@@ -174,10 +152,6 @@ class Trial:
                     self.session.global_log.loc[idx, param + '_%04i' % i] = x
             else:
                 self.session.global_log.loc[idx, param] = val
-
-        if self.eyetracker_on:
-            msg = f'start_type-{event_type}_trial-{self.trial_nr}_phase-{self.phase}_key-{response}_time-{t}'
-            self.session.tracker.sendMessage(msg)
 
     def get_events(self):
         """Logs responses/triggers from keyboard and mouse."""
@@ -240,11 +214,11 @@ class Trial:
         """
         self.draw()  # draw this phase, then load
         self.session.win.flip()
-        
+
         load_start = self.session.clock.getTime()
         self.session.create_trial(self.trial_nr+1)  # call create_trial method from session!
         load_dur = self.session.clock.getTime() - load_start
-    
+
         if self.timing == 'frames':
             load_dur /= self.session.actual_framerate
 
@@ -255,11 +229,6 @@ class Trial:
     def run(self):
         """ Runs through phases. Should not be subclassed unless
         really necessary. """
-
-        if self.eyetracker_on:  # Sets status message
-            cmd = f"record_status_message 'trial {self.trial_nr}'"
-            self.session.tracker.sendCommand(cmd)
-
         # Because the first flip happens when the experiment starts,
         # we need to compensate for this during the first trial/phase
         if self.session.first_trial:
@@ -276,14 +245,10 @@ class Trial:
             self.session.win.callOnFlip(self.log_phase_info, phase=self.phase)
             #self.log_phase_info(phase=self.phase)
 
-            # Start loading in next trial during this phase (if not None)
-            if self.load_next_during_phase == self.phase:
-                self.load_next_trial(phase_dur)
-
             if self.timing == 'seconds':
                 # Loop until timer is at 0!
                 self.session.timer.add(phase_dur)
-                if self.phase == 2:
+                if self.phase == 2:  # TODO: this should logically sit somewhere else
                     self.buffer_zone = self.session.timer.getTime() + 0.1  # 100 ms buffer zone
                     # print(f"Buffer zone: {self.buffer_zone}")
                 while self.session.timer.getTime() < 0 and not self.exit_phase and not self.exit_trial:
@@ -315,3 +280,10 @@ class Trial:
 
             if not self.phase == max(range(len(self.phase_durations))):  # I do not know why but we need this
                 self.phase += 1  # advance phase
+
+    @staticmethod
+    def wait(delay_ms):
+        """Pauses for the specified delay in milliseconds without blocking."""
+        start_time = time.time()
+        while (time.time() - start_time) * 1000 < delay_ms:
+            pass  # Do nothing, just wait
