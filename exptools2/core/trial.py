@@ -182,10 +182,11 @@ class Trial:
                 if i == 0:
                     continue
                 # show feedback by digit color change
-                if digit.contains(self.session.mouse):
-                    digit.color = "grey"
-                else:
-                    digit.color = "white"
+                if self.session.mouse.getVisible():
+                    if digit.contains(self.session.mouse):
+                        digit.color = "darkgrey"
+                    else:
+                        digit.color = "white"
                 if self.session.mouse.getPressed()[0] and not self.session.mouse_was_pressed:
                     if digit.contains(self.session.mouse):
                         clicked_digits.append(i - 1)  # Store the clicked digit index
