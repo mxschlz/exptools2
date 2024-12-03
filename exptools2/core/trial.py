@@ -190,6 +190,7 @@ class Trial:
                 if self.session.mouse.getPressed()[0] and not self.session.mouse_was_pressed:
                     if digit.contains(self.session.mouse):
                         clicked_digits.append(i - 1)  # Store the clicked digit index
+                        self.session.mouse.setVisible(False)
                     # Decide on the final response after checking all digits
                     if clicked_digits:
                         # response = self.session.settings["numpad"]["digits"][i - 1]
