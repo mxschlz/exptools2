@@ -78,11 +78,10 @@ class Session:
                 "event_type",
                 "phase",
                 "response",
-                "nr_frames",
                 "rt"
             ]
         )
-        self.nr_frames = 0  # keeps track of nr of nr of frame flips
+        #self.nr_frames = 0  # keeps track of nr of nr of frame flips
         self.first_trial = True
         self.closed = False
 
@@ -234,7 +233,8 @@ class Session:
         if self.closed:  # already closed!
             return None
 
-        self.win.callOnFlip(self._set_exp_stop)
+        # self.win.callOnFlip(self._set_exp_stop)
+        self._set_exp_stop()
         self.win.flip()
         self.win.recordFrameIntervals = False
 
@@ -319,13 +319,12 @@ class Session:
         self.local_log.loc[nonresp_idx, "duration"] = durations
 
         # Same for nr frames
-        nr_frames = np.append(
-            self.local_log.loc[nonresp_idx, "nr_frames"].values[1:], self.nr_frames
-        )
+        #nr_frames = np.append(
+            #self.local_log.loc[nonresp_idx, "nr_frames"].values[1:], self.nr_frames)
         # Identify and handle NaN values
         # nan_indices = np.isnan(nr_frames)
         # nr_frames[nan_indices] = 0  # Replace NaNs with 0
-        self.local_log.loc[nonresp_idx, "nr_frames"] = nr_frames.astype(int)
+        #self.local_log.loc[nonresp_idx, "nr_frames"] = nr_frames.astype(int)
         # Round for readability and save to disk
         self.local_log = self.local_log.round(
             {"onset": 3, "onset_abs": 3, "duration": 3}
