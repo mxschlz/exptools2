@@ -116,7 +116,7 @@ class Trial:
         # print(phase)
         self.session.global_log.loc[idx, 'event_type'] = self.phase_names[phase]
         self.session.global_log.loc[idx, 'phase'] = phase
-        self.session.global_log.loc[idx, 'nr_frames'] = self.session.nr_frames
+        # self.session.global_log.loc[idx, 'nr_frames'] = self.session.nr_frames
 
         for param, val in self.parameters.items():  # add parameters to log
             if type(val) == np.ndarray or type(val) == list:
@@ -124,7 +124,7 @@ class Trial:
                     self.session.global_log.loc[idx, param+'_%4i'%i] = str(x) 
             else:       
                 self.session.global_log.loc[idx, param] = val
-        self.session.nr_frames = 0
+        # self.session.nr_frames = 0
 
     def stop_phase(self):
         """ Allows you to break out the drawing loop while the phase-duration
@@ -200,7 +200,7 @@ class Trial:
                         self.last_resp = response
                         self.last_resp_onset = t
                         break
-                self.session.mouse.clickReset()  # Update mouse position
+            self.session.mouse.clickReset()  # Update mouse position
             # Track mouse button state
             self.session.mouse_was_pressed = self.session.mouse.getPressed()[0]
         return events
@@ -244,12 +244,13 @@ class Trial:
 
         for phase_dur in self.phase_durations:  # loop over phase durations
             # pass self.phase *now* instead of while logging the phase info.
-            self.session.win.callOnFlip(self.log_phase_info, phase=self.phase)
-            #self.log_phase_info(phase=self.phase)
+            # self.session.win.callOnFlip(self.log_phase_info, phase=self.phase)
+            self.log_phase_info(phase=self.phase)  # TODO: use callOnFlip in auditory experiments??
 
             if self.timing == 'seconds':
                 # Loop until timer is at 0!
                 self.session.timer.add(phase_dur)
+                print(self.session.timer.getTime())
                 if self.phase == 2:  # TODO: this should logically sit somewhere else
                     self.buffer_zone = self.session.timer.getTime() + 0.1  # 100 ms buffer zone
                     # print(f"Buffer zone: {self.buffer_zone}")
@@ -257,7 +258,7 @@ class Trial:
                     self.draw()
                     if self.draw_each_frame:
                         self.session.win.flip()
-                        self.session.nr_frames += 1
+                        # self.session.nr_frames += 1
                     self.get_events()
             else:
                 # Loop for a predetermined number of frames
@@ -271,7 +272,7 @@ class Trial:
                     self.draw()
                     self.session.win.flip()
                     self.get_events()
-                    self.session.nr_frames += 1
+                    # self.session.nr_frames += 1
 
             if self.exit_phase:  # broke out of phase loop
                 self.session.timer.reset()  # reset timer!
@@ -283,9 +284,8 @@ class Trial:
             if not self.phase == max(range(len(self.phase_durations))):  # I do not know why but we need this
                 self.phase += 1  # advance phase
 
-    @staticmethod
-    def wait(delay_ms):
+    def wait(self, delay_ms):
         """Pauses for the specified delay in milliseconds without blocking."""
-        start_time = time.time()
-        while (time.time() - start_time) * 1000 < delay_ms:
-            pass  # Do nothing, just wait
+        start_time = self.session.clock.getTime()
+        while (self.session.clock.getTime() - start_time) * 1000 < delay_ms:
+            pass
