@@ -193,6 +193,10 @@ class Session:
         # set audio hardware
         # self.set_audio_hardware(library=self.settings["preferences"]["general"]["audioLib"])
 
+    def start_block(self):
+        self.first_trial = True
+        self.timer.reset()
+
     def _set_exp_stop(self):
         """Called on last win.flip(); timestamps end of exp."""
         self.exp_stop = self.clock.getTime()
