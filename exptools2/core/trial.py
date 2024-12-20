@@ -289,3 +289,9 @@ class Trial:
         start_time = self.session.clock.getTime()
         while (self.session.clock.getTime() - start_time) * 1000 < delay_ms:
             pass
+
+    def track_mouse_pos(self):
+        """Track mouse position."""
+        mouse_positions = []
+        buttons, position, times = self.session.mouse.getPos(getTime=True)
+        mouse_positions.append([position[0], position[1], self.session.timer.getTime()])
