@@ -15,6 +15,7 @@ from psychopy import prefs as psychopy_prefs
 from ..stimuli import create_circle_fixation, create_fixation_cross, create_virtual_response_box
 from datetime import datetime
 import math
+import csv
 
 
 class Session:
@@ -118,6 +119,7 @@ class Session:
             self.virtual_response_box = None
         self.test = False  # for quitting
         self.t_per_frame = None  # duration of one frame
+        self.mouse_data = []
 
     def _load_settings(self):
         """Loads settings and sets preferences."""
@@ -335,6 +337,11 @@ class Session:
         )
         f_out = op.join(self.output_dir, self.name + "_events.csv")
         self.local_log.to_csv(f_out, index=True)
+        f_out_mouse = op.join(self.output_dir, self.name + "_mouse_data.csv")
+        with open(f_out_mouse, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["trial_nr", "x", "y", "time"])  # Write header row
+            writer.writerows(self.mouse_data)
         # set saving output to None for RAM
         del self.local_log
 
