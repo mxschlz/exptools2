@@ -292,6 +292,5 @@ class Trial:
 
     def track_mouse_pos(self):
         """Track mouse position."""
-        mouse_positions = []
-        buttons, position, times = self.session.mouse.getPos(getTime=True)
-        mouse_positions.append([position[0], position[1], self.session.timer.getTime()])
+        x_coord, y_coord = self.session.mouse.getPos()
+        self.session.mouse_data.append([self.trial_nr, x_coord, y_coord, self.session.timer.getTime()])
