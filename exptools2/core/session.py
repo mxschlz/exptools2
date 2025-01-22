@@ -216,8 +216,8 @@ class Session:
         kwargs : key-word args
             Any (set of) parameter(s) passed to TextStim
         """
-        if keys is None and duration is None:
-            raise ValueError("Please set either 'keys' or 'duration'!")
+        #if keys is None and duration is None:
+            #raise ValueError("Please set either 'keys' or 'duration'!")
 
         if keys is not None and duration is not None:
             raise ValueError("Cannot set both 'keys' and 'duration'!")
