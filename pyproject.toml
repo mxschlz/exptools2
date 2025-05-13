@@ -1,7 +1,0 @@
-[build-system]
-requires = [
-    "setuptools>=42", # Or a more recent version if needed
-    "wheel"
-]
-build-backend = "setuptools.build_meta"
-backend-path = ["."] # Specifies that setup.py is in the current directory
