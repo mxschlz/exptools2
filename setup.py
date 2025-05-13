@@ -1,10 +1,9 @@
 import os.path as op
-import os
 from setuptools import setup, find_packages
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 _version_major = 0
-_version_minor = 1
+_version_minor = 2
 _version_micro = ''  # use '' for first of series, number for 1 and above
 _version_extra = 'dev'
 # _version_extra = ''  # Uncomment this for full releases
@@ -30,23 +29,25 @@ CLASSIFIERS = ["Development Status :: 3 - Alpha",
 description = "exptools2: stimulus presentation for psychophysics experiments"
 # Long description will go up on the pypi page
 long_description = """
+BIG CREDITS GO TO TOMAS KNAPEN AND HIS PEERS! The project you downloaded is a fork from his original repo, please visit
+GitHub for further details.
+
 exptools2
 =========
-Bla bla.
 To get started, please go to the repository README_.
 .. _README: https://github.com/VU-Cog-Sci/exptools2/blob/master/README.md
 """
 
 NAME = "exptools2"
-MAINTAINER = "Tomas Knapen"
-MAINTAINER_EMAIL = "tomasknapen@gmail.com"
+MAINTAINER = "Max Schulz"
+MAINTAINER_EMAIL = "schulz.max5@gmail.com"
 DESCRIPTION = description
 LONG_DESCRIPTION = long_description
-URL = "http://github.com/VU-Cog-Sci/exptools2"
+URL = "https://github.com/mxschlz/exptools2"
 DOWNLOAD_URL = ""
 LICENSE = "MIT"
-AUTHOR = "Tomas Knapen"
-AUTHOR_EMAIL = "tomasknapen@gmail.com"
+AUTHOR = "Max Schulz"
+AUTHOR_EMAIL = "schulz.max5@gmail.com"
 PLATFORMS = "OS Independent"
 MAJOR = _version_major
 MINOR = _version_minor
