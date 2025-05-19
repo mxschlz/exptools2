@@ -1,4 +1,4 @@
-from psychopy.visual import Circle, TextStim, Rect
+from psychopy.visual import Circle, TextStim, Rect, ShapeStim
 
 
 def create_circle_fixation(win, radius=0.1, color=(1, 1, 1),
@@ -38,3 +38,64 @@ def create_virtual_response_box(win, digits, size, units):
         print(f"Digit {digit}: x_pos={x_pos}, y_pos={y_pos}, font_size={font_size}")
 
     return digit_stimuli
+
+
+def create_shape_stims(win, arrow_size=0.6, arrow_offset=1.0): # Default arrow_size increased
+    """
+    Creates the three arrow ShapeStim objects (left, up, right)
+    and returns them in a list. Arrows are now larger by default
+    and positioned further from the center, scaling with arrow_size.
+
+    Args:
+        win: The PsychoPy window object.
+        arrow_size: Size of the arrows. Also influences their distance from center.
+
+    Returns:
+        A list containing the left, up, and right arrow ShapeStim objects.
+    """
+    # New vertices for a slightly longer arrow with a clear shaft and head.
+    # Arrow points right, with tip at (0,0) and base at x=-0.5 in its local coordinates.
+    # Total length = 0.5 units, max head width = 0.2 units.
+    arrow_vertices = [
+        (-0.5, 0.04),  # Top-left of shaft
+        (-0.2, 0.04),  # Top-right of shaft (connects to head base)
+        (-0.2, 0.1),   # Top-outer point of head base
+        (0, 0),        # Tip of the arrow
+        (-0.2, -0.1),  # Bottom-outer point of head base
+        (-0.2, -0.04), # Bottom-right of shaft (connects to head base)
+        (-0.5, -0.04)  # Bottom-left of shaft
+    ]
+
+    # Calculate position offset based on arrow_size to maintain separation
+    position_offset = arrow_size * arrow_offset
+
+    # Create the left arrow
+    arrow_left = ShapeStim(win,
+                           vertices=arrow_vertices,
+                           fillColor='white',
+                           lineColor='white',
+                           size=arrow_size,
+                           pos=(-position_offset, 0),
+                           ori=180)  # 180 degrees for left
+
+    # Create the up arrow
+    arrow_up = ShapeStim(win,
+                         vertices=arrow_vertices,
+                         fillColor='white',
+                         lineColor='white',
+                         size=arrow_size,
+                         pos=(0, position_offset),
+                         ori=270)  # 270 degrees for up (points upwards)
+
+    # Create the right arrow
+    arrow_right = ShapeStim(win,
+                            vertices=arrow_vertices,
+                            fillColor='white',
+                            lineColor='white',
+                            size=arrow_size,
+                            pos=(position_offset, 0),
+                            ori=0)  # 0 degrees for right
+
+    # Return the arrows in a list. Ensure the order matches your location indices (e.g., 0, 1, 2).
+    # If your locations are 0=left, 1=up, 2=right, this order is correct.
+    return [arrow_left, arrow_up, arrow_right]
