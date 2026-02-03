@@ -178,6 +178,8 @@ class Trial:
         self.session.keys_pressed_last_frame = events  # Store the current frame's events
         # Handle mouse clicks
         if self.session.virtual_response_box:
+            # Get mouse state once per frame to avoid race conditions
+            is_pressed = self.session.mouse.getPressed()[0]
             for i, digit in enumerate(self.session.virtual_response_box):  # skip the rectangle (i==0)
                 if i == 0:
                     continue
@@ -187,7 +189,7 @@ class Trial:
                         digit.color = "darkgrey"
                     else:
                         digit.color = "white"
-                if self.session.mouse.getPressed()[0] and not self.session.mouse_was_pressed:
+                if is_pressed and not self.session.mouse_was_pressed:
                     if digit.contains(self.session.mouse):
                         clicked_digits.append(i - 1)  # Store the clicked digit index
                         self.session.mouse.setVisible(False)
@@ -195,6 +197,7 @@ class Trial:
                     if clicked_digits:
                         # response = self.session.settings["numpad"]["digits"][i - 1]
                         response = self.session.settings["numpad"]["digits"][clicked_digits[0]]
+                        #print(response)
                         t = self.session.clock.getTime()
                         self._log_event(event_type='mouse_click', response=response, t=t)  # Or 'mouse_click'
                         self.last_resp = response
@@ -202,7 +205,7 @@ class Trial:
                         break
             self.session.mouse.clickReset()  # Update mouse position
             # Track mouse button state
-            self.session.mouse_was_pressed = self.session.mouse.getPressed()[0]
+            self.session.mouse_was_pressed = is_pressed
         return events
 
     def load_next_trial(self, phase_dur):
