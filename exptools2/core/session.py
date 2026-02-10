@@ -114,7 +114,8 @@ class Session:
             self.virtual_response_box = create_virtual_response_box(win=self.win,
                                                                     digits=self.settings["numpad"]["digits"],
                                                                     size=self.settings["numpad"]["size"],
-                                                                    units=self.units)
+                                                                    units=self.units,
+                                                                    layout=self.settings["numpad"].get("layout", "grid"))
         else:
             self.virtual_response_box = None
         self.test = False  # for quitting
