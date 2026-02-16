@@ -253,7 +253,7 @@ class Trial:
             if self.timing == 'seconds':
                 # Loop until timer is at 0!
                 self.session.timer.add(phase_dur)
-                print(self.session.timer.getTime())
+                #print(self.session.timer.getTime())
                 if self.phase == 2:  # TODO: this should logically sit somewhere else
                     self.buffer_zone = self.session.timer.getTime() + 0.1  # 100 ms buffer zone
                     # print(f"Buffer zone: {self.buffer_zone}")
